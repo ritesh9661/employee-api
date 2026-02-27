@@ -21,20 +21,25 @@ public class SecurityConfig {
             throws Exception {
 
         http
-                .csrf(csrf->csrf.disable())
-                .authorizeHttpRequests(auth->auth
+                .cors(cors -> cors.disable())
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/auth/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+                                "/v3/api-docs",
+                                "/swagger-ui/index.html"
                         )
                         .permitAll()
                         .anyRequest()
                         .authenticated()
                 )
-                .addFilterBefore(jwtFilter,
-                        UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(
+                        jwtFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
 
         return http.build();
     }
