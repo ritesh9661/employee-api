@@ -16,29 +16,24 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
 
     @Bean
-    public SecurityFilterChain filterChain(
-            HttpSecurity http)
-            throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors(cors -> cors.disable())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+
+                        // ✅ Allow Swagger
                         .requestMatchers(
-                                "/auth/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs",
-                                "/swagger-ui/index.html"
-                        )
-                        .permitAll()
-                        .anyRequest()
-                        .authenticated()
-                )
-                .addFilterBefore(
-                        jwtFilter,
-                        UsernamePasswordAuthenticationFilter.class
+                                "/swagger-ui.html"
+                        ).permitAll()
+
+                        // ✅ Allow Auth API
+                        .requestMatchers("/auth/**").permitAll()
+
+                        // 🔐 Secure others
+                        .anyRequest().authenticated()
                 );
 
         return http.build();
