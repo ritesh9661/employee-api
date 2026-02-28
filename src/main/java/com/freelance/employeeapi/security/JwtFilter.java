@@ -1,73 +1,53 @@
 package com.freelance.employeeapi.security;
 
 import com.freelance.employeeapi.util.JwtUtil;
-import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class JwtFilter
-        extends OncePerRequestFilter {
+public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
             throws ServletException, IOException {
+
         String path = request.getServletPath();
 
+        // ✅ SKIP SWAGGER & AUTH APIs
         if (path.startsWith("/swagger-ui")
                 || path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-ui.html")
                 || path.startsWith("/auth")) {
 
             filterChain.doFilter(request, response);
             return;
         }
 
-        String authHeader =
-                request.getHeader("Authorization");
+        String authHeader = request.getHeader("Authorization");
 
-        if(authHeader != null &&
-                authHeader.startsWith("Bearer ")){
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
-            String token =
-                    authHeader.substring(7);
+            String token = authHeader.substring(7);
 
-            String username =
-                    Jwts.parserBuilder()
-                            .setSigningKey(
-                                    jwtUtil.getSignKey())
-                            .build()
-                            .parseClaimsJws(token)
-                            .getBody()
-                            .getSubject();
-
-            UsernamePasswordAuthenticationToken
-                    authToken =
-                    new UsernamePasswordAuthenticationToken(
-                            username,
-                            null,
-                            List.of());
-
-            SecurityContextHolder.getContext()
-                    .setAuthentication(authToken);
+            if (jwtUtil.validateToken(token)) {
+                SecurityContextHolder.getContext()
+                        .setAuthentication(jwtUtil.getAuthentication(token));
+            }
         }
 
-        filterChain.doFilter(
-                request,response);
+        filterChain.doFilter(request, response);
     }
 }
