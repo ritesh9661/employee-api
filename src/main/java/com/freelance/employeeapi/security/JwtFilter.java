@@ -26,11 +26,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // ✅ SKIP SWAGGER & AUTH APIs
-        if (path.startsWith("/swagger-ui")
-                || path.startsWith("/v3/api-docs")
-                || path.startsWith("/swagger-ui.html")
-                || path.startsWith("/auth")) {
+        // 🔥 SKIP ALL SWAGGER + PUBLIC APIs
+        if (path.startsWith("/swagger-ui") ||
+                path.startsWith("/v3/api-docs") ||
+                path.startsWith("/swagger-resources") ||
+                path.startsWith("/webjars") ||
+                path.startsWith("/configuration") ||
+                path.startsWith("/auth") ||
+                path.startsWith("/h2-console")) {
 
             filterChain.doFilter(request, response);
             return;
